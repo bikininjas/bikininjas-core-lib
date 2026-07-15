@@ -3,8 +3,6 @@
 # ============================================================
 .gradle/
 build/
-!gradle/wrapper/gradle-wrapper.jar
-!gradle/wrapper/gradle-wrapper.properties
 
 # ============================================================
 # IDE — IntelliJ IDEA
@@ -54,6 +52,8 @@ Desktop.ini
 *.zip
 *.tar.gz
 *.rar
+!gradle/wrapper/gradle-wrapper.jar
+!gradle/wrapper/gradle-wrapper.properties
 hs_err_pid*
 replay_pid*
 
