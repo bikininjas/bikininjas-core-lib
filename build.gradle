@@ -1,7 +1,7 @@
 plugins {
     id 'java-library'
     id 'maven-publish'
-    id 'net.neoforged.moddev' version '2.0.142'
+    alias(libs.plugins.moddev)
 }
 
 version = project.mod_version
@@ -11,7 +11,7 @@ base {
     archivesName = "bikininjas-${project.mod_id}"
 }
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+java.toolchain.languageVersion = JavaLanguageVersion.of(project.java_version as int)
 
 neoForge {
     version = project.neo_version
@@ -66,12 +66,12 @@ repositories {
 
 dependencies {
     // jetbrains annotations for @NotNull/@Nullable
-    implementation 'org.jetbrains:annotations:26.0.2'
+    implementation libs.jetbrains.annotations
 
     // Tests
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.11.4'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-    testImplementation 'org.slf4j:slf4j-api:2.0.9'
+    testImplementation libs.junit.jupiter
+    testRuntimeOnly libs.junit.platform.launcher
+    testImplementation libs.slf4j.api
 }
 
 test {

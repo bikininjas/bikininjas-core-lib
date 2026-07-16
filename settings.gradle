@@ -1,13 +1,22 @@
 pluginManagement {
+    // Resolve the foojay-resolver version from gradle.properties so it stays a single source of truth
+    // (the version catalog `libs` accessor is not available inside pluginManagement).
+    def gradleProps = new Properties()
+    file('gradle.properties').withInputStream { gradleProps.load(it) }
+    def foojayResolverVersion = gradleProps.getProperty('foojay_resolver_version', '1.0.0')
+
     repositories {
         gradlePluginPortal()
         mavenCentral()
         maven { url = "https://maven.neoforged.net/releases" }
     }
+    plugins {
+        id 'org.gradle.toolchains.foojay-resolver-convention' version foojayResolverVersion
+    }
 }
 
 plugins {
-    id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
+    id 'org.gradle.toolchains.foojay-resolver-convention'
 }
 
 rootProject.name = 'core-lib'

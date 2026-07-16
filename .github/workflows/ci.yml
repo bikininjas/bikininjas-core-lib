@@ -23,6 +23,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
         with:
+          # Keep in sync with java_version in gradle.properties
           java-version: 21
           distribution: temurin
       - uses: gradle/actions/setup-gradle@v6
