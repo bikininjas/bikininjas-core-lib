@@ -11,12 +11,22 @@ import net.neoforged.bus.api.IEventBus;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.util.function.Supplier;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class ColorAPITest {
 
     private static IEventBus newBus() {
         return BusBuilder.builder().build();
+    }
+
+    private static Supplier<ItemLike> s(ItemLike item) {
+        return () -> item;
+    }
+
+    private static Supplier<Block> sb(Block block) {
+        return () -> block;
     }
 
     // ================================================================
@@ -29,58 +39,63 @@ class ColorAPITest {
         @Test
         void tintItemNullBus() {
             assertThrows(NullPointerException.class,
-                    () -> ColorAPI.tintItem(null, Items.STONE, 0xFF0000));
+                    () -> ColorAPI.tintItem(null, s(Items.STONE), 0xFF0000));
         }
 
+        @SuppressWarnings("unchecked")
         @Test
         void tintItemNullItem() {
             var bus = newBus();
             assertThrows(NullPointerException.class,
-                    () -> ColorAPI.tintItem(bus, (ItemLike) null, 0xFF0000));
+                    () -> ColorAPI.tintItem(bus, null, 0xFF0000));
         }
 
         @Test
         void tintItemHandlerNullBus() {
             var handler = (ItemColor) (stack, layer) -> 0xFFFFFFFF;
             assertThrows(NullPointerException.class,
-                    () -> ColorAPI.tintItem(null, Items.STONE, handler));
+                    () -> ColorAPI.tintItem(null, s(Items.STONE), handler));
         }
 
+        @SuppressWarnings("unchecked")
         @Test
         void tintItemHandlerNullItem() {
             var bus = newBus();
             var handler = (ItemColor) (stack, layer) -> 0xFFFFFFFF;
             assertThrows(NullPointerException.class,
-                    () -> ColorAPI.tintItem(bus, (ItemLike) null, handler));
+                    () -> ColorAPI.tintItem(bus, null, handler));
         }
 
+        @SuppressWarnings("unchecked")
         @Test
         void tintItemHandlerNullHandler() {
             var bus = newBus();
             assertThrows(NullPointerException.class,
-                    () -> ColorAPI.tintItem(bus, Items.STONE, (ItemColor) null));
+                    () -> ColorAPI.tintItem(bus, s(Items.STONE), null));
         }
 
         @Test
         void tintItemsNullBus() {
             assertThrows(NullPointerException.class,
-                    () -> ColorAPI.tintItems(null, 0xFF0000, Items.STONE, Items.DIRT));
+                    () -> ColorAPI.tintItems(null, 0xFF0000, s(Items.STONE), s(Items.DIRT)));
         }
 
+        @SuppressWarnings("unchecked")
         @Test
         void tintItemsNullItems() {
             var bus = newBus();
             assertThrows(NullPointerException.class,
-                    () -> ColorAPI.tintItems(bus, 0xFF0000, (ItemLike[]) null));
+                    () -> ColorAPI.tintItems(bus, 0xFF0000, (Supplier<? extends ItemLike>[]) null));
         }
 
         @Test
         void tintBlockNullBus() {
             var handler = (BlockColor) (state, level, pos, layer) -> 0xFFFFFFFF;
             assertThrows(NullPointerException.class,
-                    () -> ColorAPI.tintBlock(null, Blocks.STONE, handler));
+                    () -> ColorAPI.tintBlock(null, sb(Blocks.STONE), handler));
         }
 
+        @SuppressWarnings("unchecked")
         @Test
         void tintBlockNullBlock() {
             var bus = newBus();
@@ -89,118 +104,133 @@ class ColorAPITest {
                     () -> ColorAPI.tintBlock(bus, null, handler));
         }
 
+        @SuppressWarnings("unchecked")
         @Test
         void tintBlockNullHandler() {
             var bus = newBus();
             assertThrows(NullPointerException.class,
-                    () -> ColorAPI.tintBlock(bus, Blocks.STONE, (BlockColor) null));
+                    () -> ColorAPI.tintBlock(bus, sb(Blocks.STONE), null));
         }
 
         @Test
         void tintBlocksNullBus() {
             var handler = (BlockColor) (state, level, pos, layer) -> 0xFFFFFFFF;
             assertThrows(NullPointerException.class,
-                    () -> ColorAPI.tintBlocks(null, handler, Blocks.STONE));
+                    () -> ColorAPI.tintBlocks(null, handler, sb(Blocks.STONE)));
         }
 
         @Test
         void tintBlocksNullHandler() {
             var bus = newBus();
             assertThrows(NullPointerException.class,
-                    () -> ColorAPI.tintBlocks(bus, null, Blocks.STONE));
+                    () -> ColorAPI.tintBlocks(bus, null, sb(Blocks.STONE)));
         }
 
+        @SuppressWarnings("unchecked")
         @Test
         void tintBlocksNullBlocks() {
             var bus = newBus();
             var handler = (BlockColor) (state, level, pos, layer) -> 0xFFFFFFFF;
             assertThrows(NullPointerException.class,
-                    () -> ColorAPI.tintBlocks(bus, handler, (Block[]) null));
+                    () -> ColorAPI.tintBlocks(bus, handler, (Supplier<? extends Block>[]) null));
         }
     }
 
     // ================================================================
-    // Item registration — handler is actually called
+    // Registration
     // ================================================================
 
     @Nested
-    class ItemRegistration {
+    class Registration {
 
         @Test
         void constantColorLayer0() {
             var bus = newBus();
             assertDoesNotThrow(() ->
-                    ColorAPI.tintItem(bus, Items.STONE, 0xFFFF0000));
+                    ColorAPI.tintItem(bus, s(Items.STONE), 0xFFFF0000));
         }
 
         @Test
         void constantColorSpecificLayer() {
-            // Verify the 4-arg overload (color + layer) doesn't throw
             var bus = newBus();
             assertDoesNotThrow(() ->
-                    ColorAPI.tintItem(bus, Items.APPLE, 0xFF8888FF, 1));
+                    ColorAPI.tintItem(bus, s(Items.APPLE), 0xFF8888FF, 1));
         }
 
         @Test
-        void dynamicHandler() {
+        void dynamicItemHandler() {
             var bus = newBus();
             ItemColor handler = (stack, layer) ->
                     layer == 0 ? 0xFFFF6666 : 0xFFFFFFFF;
-
             assertDoesNotThrow(() ->
-                    ColorAPI.tintItem(bus, Items.DIAMOND, handler));
+                    ColorAPI.tintItem(bus, s(Items.DIAMOND), handler));
         }
 
         @Test
-        void batchItemsSameColor() {
+        void batchItems() {
             var bus = newBus();
             assertDoesNotThrow(() ->
                     ColorAPI.tintItems(bus, 0xFF4488FF,
-                            Items.STONE, Items.DIRT, Items.COBBLESTONE));
+                            s(Items.STONE), s(Items.DIRT), s(Items.COBBLESTONE)));
         }
 
         @Test
         void batchSingleItem() {
             var bus = newBus();
             assertDoesNotThrow(() ->
-                    ColorAPI.tintItems(bus, 0xFF4488FF, Items.GOLD_INGOT));
+                    ColorAPI.tintItems(bus, 0xFF4488FF, s(Items.GOLD_INGOT)));
         }
-    }
 
-    // ================================================================
-    // Block registration — handler is actually registered
-    // ================================================================
-
-    @Nested
-    class BlockRegistration {
+        @Test
+        void emptyBatchItems() {
+            var bus = newBus();
+            assertDoesNotThrow(() ->
+                    ColorAPI.tintItems(bus, 0xFF4488FF));
+        }
 
         @Test
         void singleBlock() {
             var bus = newBus();
             BlockColor handler = (state, level, pos, layer) ->
                     layer == 0 ? 0xFF88FF88 : 0xFFFFFFFF;
-
             assertDoesNotThrow(() ->
-                    ColorAPI.tintBlock(bus, Blocks.GRASS_BLOCK, handler));
+                    ColorAPI.tintBlock(bus, sb(Blocks.GRASS_BLOCK), handler));
         }
 
         @Test
         void batchBlocks() {
             var bus = newBus();
             BlockColor handler = (state, level, pos, layer) -> 0xFFAAAAFF;
-
             assertDoesNotThrow(() ->
                     ColorAPI.tintBlocks(bus, handler,
-                            Blocks.STONE, Blocks.DIRT, Blocks.SAND));
+                            sb(Blocks.STONE), sb(Blocks.DIRT), sb(Blocks.SAND)));
+        }
+    }
+
+    // ================================================================
+    // Multiple registrations
+    // ================================================================
+
+    @Nested
+    class MultipleRegistrations {
+
+        @Test
+        void twoColorsOnDifferentItems() {
+            var bus = newBus();
+            assertDoesNotThrow(() -> {
+                ColorAPI.tintItem(bus, s(Items.STONE), 0xFFFF0000);
+                ColorAPI.tintItem(bus, s(Items.DIRT), 0xFF00FF00);
+            });
         }
 
         @Test
-        void batchSingleBlock() {
+        void itemAndBlockOnSameBus() {
             var bus = newBus();
-            BlockColor handler = (state, level, pos, layer) -> 0xFF000000;
-
-            assertDoesNotThrow(() ->
-                    ColorAPI.tintBlocks(bus, handler, Blocks.OAK_PLANKS));
+            assertDoesNotThrow(() -> {
+                ColorAPI.tintItem(bus, s(Items.APPLE), 0xFFFF0000);
+                ColorAPI.tintBlock(bus, sb(Blocks.GRASS_BLOCK),
+                        (state, level, pos, layer) -> 0xFF00FF00);
+            });
         }
     }
 }
