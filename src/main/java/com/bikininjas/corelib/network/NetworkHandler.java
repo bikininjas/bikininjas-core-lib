@@ -9,12 +9,16 @@ import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 /**
  * Registers all core-lib network payloads.
  * <p>
  * Must be called from the owning mod's constructor with the mod event bus.
  */
 public final class NetworkHandler {
+
+    private static final AtomicBoolean registered = new AtomicBoolean(false);
 
     private NetworkHandler() {
     }
@@ -28,6 +32,9 @@ public final class NetworkHandler {
      * }</pre>
      */
     public static void register(@NotNull IEventBus modBus) {
+        if (!registered.compareAndSet(false, true)) {
+            return; // Already registered — prevents double-reg when core-lib loaded via composite build
+        }
         modBus.addListener((RegisterPayloadHandlersEvent event) -> {
             var registrar = event.registrar("core_lib");
             registrar.playToClient(
