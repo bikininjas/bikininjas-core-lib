@@ -1,5 +1,7 @@
 package com.bikininjas.corelib.objective;
 
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -10,6 +12,7 @@ import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.entity.player.ItemEntityPickupEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,6 +53,9 @@ public final class ObjectiveTracker {
     /** Player UUID → server tick at which the challenge started. */
     public static final Map<UUID, Long> START_TIMES = new ConcurrentHashMap<>();
 
+    /** Player UUID → name of the active challenge. */
+    public static final Map<UUID, String> ACTIVE_CHALLENGE_NAMES = new ConcurrentHashMap<>();
+
     /** Tick counter advanced by the server tick handler. */
     private static volatile long currentTick = 0L;
 
@@ -81,6 +87,7 @@ public final class ObjectiveTracker {
         objectives.put(id, List.copyOf(challenge.objectives()));
         COUNTS.put(id, new ConcurrentHashMap<>());
         START_TIMES.put(id, currentTick);
+        ACTIVE_CHALLENGE_NAMES.put(id, challenge.name());
         LOGGER.debug("Started challenge '{}' for {}", challenge.name(), id);
     }
 
@@ -95,6 +102,7 @@ public final class ObjectiveTracker {
         objectives.remove(id);
         COUNTS.remove(id);
         START_TIMES.remove(id);
+        ACTIVE_CHALLENGE_NAMES.remove(id);
         LOGGER.debug("Stopped challenge tracking for {}", id);
     }
 
@@ -136,6 +144,45 @@ public final class ObjectiveTracker {
         Objects.requireNonNull(player, "player");
         List<Objective> objs = objectives.get(player.getUUID());
         return objs != null && !objs.isEmpty();
+    }
+
+    /**
+     * Check whether all active objectives for a player have been completed.
+     *
+     * @param player the player to check; never {@code null}.
+     * @return {@code true} if the player has active objectives and all of them
+     *         report {@link Objective#isComplete(ServerPlayer) complete}.
+     */
+    public static boolean isChallengeComplete(@NotNull ServerPlayer player) {
+        Objects.requireNonNull(player, "player");
+        List<Objective> objs = objectives.get(player.getUUID());
+        return objs != null && !objs.isEmpty()
+                && objs.stream().allMatch(o -> o.isComplete(player));
+    }
+
+    /**
+     * @param player the player to query; never {@code null}.
+     * @return the wall-clock seconds elapsed since the challenge started,
+     *         or {@code 0} if the player is not tracking a challenge.
+     */
+    public static long getElapsedSeconds(@NotNull ServerPlayer player) {
+        Objects.requireNonNull(player, "player");
+        Long start = START_TIMES.get(player.getUUID());
+        if (start == null) {
+            return 0L;
+        }
+        return (currentTick - start) / 20L;
+    }
+
+    /**
+     * @param player the player to query; never {@code null}.
+     * @return the name of the player's active challenge, or {@code null} if
+     *         the player is not tracking a challenge.
+     */
+    @Nullable
+    public static String getActiveChallengeName(@NotNull ServerPlayer player) {
+        Objects.requireNonNull(player, "player");
+        return ACTIVE_CHALLENGE_NAMES.get(player.getUUID());
     }
 
     /**
@@ -198,10 +245,43 @@ public final class ObjectiveTracker {
 
         @SubscribeEvent
         static void onServerTick(@NotNull ServerTickEvent.Post event) {
-            currentTick = event.getServer().getTickCount();
-            // Reach / survival progress is read lazily via progress(); this tick hook
-            // exists so the counter advances and completion can be polled. Completion
-            // checks are performed by callers via getProgress()/isComplete().
+            MinecraftServer server = event.getServer();
+            currentTick = server.getTickCount();
+
+            // Check completion every tick; send action bar every 20 ticks (~1s).
+            boolean tickSecond = (currentTick & 0xF) == 0; // tick % 20 == 0
+
+            for (Map.Entry<UUID, List<Objective>> entry : objectives.entrySet()) {
+                UUID playerId = entry.getKey();
+                ServerPlayer player = server.getPlayerList().getPlayer(playerId);
+                if (player == null) {
+                    continue;
+                }
+
+                // Auto-stop when all objectives are complete.
+                if (entry.getValue().stream().allMatch(o -> o.isComplete(player))) {
+                    String name = ACTIVE_CHALLENGE_NAMES.getOrDefault(playerId, "?");
+                    stopChallenge(player);
+                    player.displayClientMessage(
+                            Component.literal("§a✔ Challenge '").append(name)
+                                    .append(Component.literal("' completed!")), false);
+                    continue;
+                }
+
+                // Timer action bar every second.
+                if (tickSecond) {
+                    long elapsed = getElapsedSeconds(player);
+                    long mins = elapsed / 60;
+                    long secs = elapsed % 60;
+                    float prog = getProgress(player);
+                    int pct = Math.round(prog * 100.0f);
+                    String cname = ACTIVE_CHALLENGE_NAMES.getOrDefault(playerId, "?");
+
+                    player.displayClientMessage(Component.literal(
+                            String.format("§e⏱ §f%s §7| §a%d%% §7| §e%d:%02d",
+                                    cname, pct, mins, secs)), true);
+                }
+            }
         }
     }
 }
