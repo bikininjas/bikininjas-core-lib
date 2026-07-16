@@ -1,0 +1,34 @@
+name: Download core-lib
+# Reusable workflow for child mods to fetch core-lib from GitHub Release.
+# Call BEFORE `./gradlew build` in your child mod's CI.
+#
+# Usage from child mod CI:
+#   download-corelib:
+#     uses: bikininjas/BikininjasMCMods/.github/workflows/download-corelib.yml@master
+#     with:
+#       version: '1.0.0'
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
+        description: 'core-lib version (e.g. 1.0.0)'
+      repo:
+        required: false
+        type: string
+        default: 'bikininjas/bikininjas-mclib'
+        description: 'GitHub repo owning the release'
+
+jobs:
+  download:
+    name: Download core-lib v${{ inputs.version }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download JAR from GitHub Release (no auth)
+        run: |
+          mkdir -p libs
+          URL="https://github.com/${{ inputs.repo }}/releases/download/v${{ inputs.version }}/core_lib-${{ inputs.version }}.jar"
+          curl -sSfL -o "libs/core_lib-${{ inputs.version }}.jar" "$URL"
+          echo "✅ core-lib v${{ inputs.version }} downloaded ($(stat -c%s libs/core_lib-${{ inputs.version }}.jar 2>/dev/null || wc -c < libs/core_lib-${{ inputs.version }}.jar) bytes)"
