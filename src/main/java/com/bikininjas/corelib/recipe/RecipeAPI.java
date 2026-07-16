@@ -76,7 +76,12 @@ public final class RecipeAPI {
 
     // -- Internal ------------------------------------------------------------
 
-    private static void applyPending(MinecraftServer server) {
+    /**
+     * Apply pending recipe additions and removals to the server's {@link RecipeManager}.
+     * Called automatically on {@link ServerAboutToStartEvent} via core-lib's init.
+     * Mods can also call this directly to force immediate application.
+     */
+    public static void applyPending(@NotNull MinecraftServer server) {
         var manager = server.getRecipeManager();
         if (pendingAdditions.isEmpty() && pendingRemovals.isEmpty()) {
             return;
