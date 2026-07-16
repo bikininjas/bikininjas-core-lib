@@ -6,7 +6,6 @@ import com.bikininjas.corelib.message.MessageHelper;
 import com.bikininjas.corelib.objective.Challenge;
 import com.bikininjas.corelib.objective.ChallengeDefinition;
 import com.bikininjas.corelib.objective.ChallengeRegistry;
-import com.bikininjas.corelib.objective.Objective;
 import com.bikininjas.corelib.objective.ObjectiveTracker;
 import com.bikininjas.corelib.player.PlayerState;
 import com.bikininjas.corelib.player.PlayerStateManager;
@@ -21,32 +20,31 @@ import com.bikininjas.corelib.time.TimeManager;
 import com.bikininjas.corelib.entity.SpawnHelper;
 import com.bikininjas.corelib.world.WorldUtils;
 import net.minecraft.core.BlockPos;
-import net.minecraft.gametest.framework.GameTest;
-import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.gametest.GameTestHolder;
+import net.neoforged.testframework.annotation.ForEachTest;
+import net.neoforged.testframework.gametest.EmptyTemplate;
+import net.neoforged.testframework.gametest.ExtendedGameTestHelper;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Set;
 
 /**
- * GameTest functions for core-lib features.
+ * GameTest functions for core-lib features, migrated to the NeoForge Test Framework.
  * <p>
- * Registered automatically via {@link GameTestHolder @GameTestHolder}.
- * Each test runs inside a 3×3×3 structure with an iron block floor.
+ * Uses {@link ForEachTest @ForEachTest} for auto-registration,
+ * {@link EmptyTemplate @EmptyTemplate} instead of .snbt structure files,
+ * and {@link ExtendedGameTestHelper} for enhanced test API.
  */
-@GameTestHolder("core_lib")
+@ForEachTest(groups = "core_lib")
 public final class CoreLibTestFunctions {
 
     private CoreLibTestFunctions() {
@@ -57,8 +55,12 @@ public final class CoreLibTestFunctions {
         RandomEventManager.getInstance().reset();
     }
 
-    @GameTest(template = "core_lib:empty3x3x3")
-    public static void statsOverlay_toggle(@NotNull GameTestHelper helper) {
+    // ========================================================================
+    // StatsDisplayPrefs
+    // ========================================================================
+
+    @EmptyTemplate(value = "3x3x3", floor = true)
+    public static void statsOverlay_toggle(@NotNull ExtendedGameTestHelper helper) {
         cleanup();
         var player = makePlayer(helper);
         boolean start = StatsDisplayPrefs.isEnabled(player);
@@ -71,8 +73,8 @@ public final class CoreLibTestFunctions {
         helper.succeed();
     }
 
-    @GameTest(template = "core_lib:empty3x3x3")
-    public static void statsOverlay_visibleFields(@NotNull GameTestHelper helper) {
+    @EmptyTemplate(value = "3x3x3", floor = true)
+    public static void statsOverlay_visibleFields(@NotNull ExtendedGameTestHelper helper) {
         cleanup();
         var player = makePlayer(helper);
         var fields = Set.of(StatsDisplayPrefs.FIELD_DEATHS, StatsDisplayPrefs.FIELD_KILLS);
@@ -83,8 +85,8 @@ public final class CoreLibTestFunctions {
         helper.succeed();
     }
 
-    @GameTest(template = "core_lib:empty3x3x3")
-    public static void statsOverlay_defaultEnabled(@NotNull GameTestHelper helper) {
+    @EmptyTemplate(value = "3x3x3", floor = true)
+    public static void statsOverlay_defaultEnabled(@NotNull ExtendedGameTestHelper helper) {
         cleanup();
         var player = makePlayer(helper);
         helper.assertTrue(StatsDisplayPrefs.isEnabled(player),
@@ -92,8 +94,12 @@ public final class CoreLibTestFunctions {
         helper.succeed();
     }
 
-    @GameTest(template = "core_lib:empty3x3x3")
-    public static void kit_giveSimple(@NotNull GameTestHelper helper) {
+    // ========================================================================
+    // KitManager
+    // ========================================================================
+
+    @EmptyTemplate(value = "3x3x3", floor = true)
+    public static void kit_giveSimple(@NotNull ExtendedGameTestHelper helper) {
         cleanup();
         KitManager.register(Kit.of("test_kit",
                 new ItemStack(Items.BREAD, 16),
@@ -106,8 +112,8 @@ public final class CoreLibTestFunctions {
         helper.succeed();
     }
 
-    @GameTest(template = "core_lib:empty3x3x3")
-    public static void kit_duplicateName(@NotNull GameTestHelper helper) {
+    @EmptyTemplate(value = "3x3x3", floor = true)
+    public static void kit_duplicateName(@NotNull ExtendedGameTestHelper helper) {
         cleanup();
         KitManager.register(Kit.of("dup_kit", new ItemStack(Items.STONE)));
         KitManager.register(Kit.of("dup_kit", new ItemStack(Items.DIRT)));
@@ -119,8 +125,12 @@ public final class CoreLibTestFunctions {
         helper.succeed();
     }
 
-    @GameTest(template = "core_lib:empty3x3x3")
-    public static void randomEvent_selectsRegistered(@NotNull GameTestHelper helper) {
+    // ========================================================================
+    // RandomEventManager
+    // ========================================================================
+
+    @EmptyTemplate(value = "3x3x3", floor = true)
+    public static void randomEvent_selectsRegistered(@NotNull ExtendedGameTestHelper helper) {
         cleanup();
         var mgr = RandomEventManager.getInstance();
         mgr.reset();
@@ -144,8 +154,8 @@ public final class CoreLibTestFunctions {
         helper.succeed();
     }
 
-    @GameTest(template = "core_lib:empty3x3x3")
-    public static void randomEvent_emptySelectsNull(@NotNull GameTestHelper helper) {
+    @EmptyTemplate(value = "3x3x3", floor = true)
+    public static void randomEvent_emptySelectsNull(@NotNull ExtendedGameTestHelper helper) {
         cleanup();
         var mgr = RandomEventManager.getInstance();
         mgr.reset();
@@ -154,8 +164,8 @@ public final class CoreLibTestFunctions {
         helper.succeed();
     }
 
-    @GameTest(template = "core_lib:empty3x3x3")
-    public static void randomEvent_zeroWeightNotSelected(@NotNull GameTestHelper helper) {
+    @EmptyTemplate(value = "3x3x3", floor = true)
+    public static void randomEvent_zeroWeightNotSelected(@NotNull ExtendedGameTestHelper helper) {
         cleanup();
         var mgr = RandomEventManager.getInstance();
         mgr.reset();
@@ -176,9 +186,12 @@ public final class CoreLibTestFunctions {
         helper.succeed();
     }
 
+    // ========================================================================
+    // TimeManager
+    // ========================================================================
 
-    @GameTest(template = "core_lib:empty3x3x3")
-    public static void timeManager_setDay(@NotNull GameTestHelper helper) {
+    @EmptyTemplate(value = "3x3x3", floor = true)
+    public static void timeManager_setDay(@NotNull ExtendedGameTestHelper helper) {
         cleanup();
         var level = helper.getLevel();
         TimeManager.setDay(level);
@@ -187,8 +200,8 @@ public final class CoreLibTestFunctions {
         helper.succeed();
     }
 
-    @GameTest(template = "core_lib:empty3x3x3")
-    public static void timeManager_setNight(@NotNull GameTestHelper helper) {
+    @EmptyTemplate(value = "3x3x3", floor = true)
+    public static void timeManager_setNight(@NotNull ExtendedGameTestHelper helper) {
         cleanup();
         var level = helper.getLevel();
         TimeManager.setNight(level);
@@ -197,8 +210,8 @@ public final class CoreLibTestFunctions {
         helper.succeed();
     }
 
-    @GameTest(template = "core_lib:empty3x3x3")
-    public static void timeManager_toggleTimeFreeze(@NotNull GameTestHelper helper) {
+    @EmptyTemplate(value = "3x3x3", floor = true)
+    public static void timeManager_toggleTimeFreeze(@NotNull ExtendedGameTestHelper helper) {
         cleanup();
         var level = helper.getLevel();
         boolean before = TimeManager.isTimeFrozen(level);
@@ -212,8 +225,8 @@ public final class CoreLibTestFunctions {
         helper.succeed();
     }
 
-    @GameTest(template = "core_lib:empty3x3x3")
-    public static void timeManager_setTimeRate(@NotNull GameTestHelper helper) {
+    @EmptyTemplate(value = "3x3x3", floor = true)
+    public static void timeManager_setTimeRate(@NotNull ExtendedGameTestHelper helper) {
         cleanup();
         var level = helper.getLevel();
         TimeManager.setTimeRate(level, 2.0f);
@@ -223,9 +236,12 @@ public final class CoreLibTestFunctions {
         helper.succeed();
     }
 
+    // ========================================================================
+    // SpawnHelper
+    // ========================================================================
 
-    @GameTest(template = "core_lib:empty3x3x3")
-    public static void spawnHelper_spawnAt(@NotNull GameTestHelper helper) {
+    @EmptyTemplate(value = "3x3x3", floor = true)
+    public static void spawnHelper_spawnAt(@NotNull ExtendedGameTestHelper helper) {
         cleanup();
         var level = helper.getLevel();
         var pos = new Vec3(0, 0, 0);
@@ -238,8 +254,8 @@ public final class CoreLibTestFunctions {
         helper.succeed();
     }
 
-    @GameTest(template = "core_lib:empty3x3x3")
-    public static void spawnHelper_spawnAtPlayer(@NotNull GameTestHelper helper) {
+    @EmptyTemplate(value = "3x3x3", floor = true)
+    public static void spawnHelper_spawnAtPlayer(@NotNull ExtendedGameTestHelper helper) {
         cleanup();
         var player = makePlayer(helper);
         var entity = SpawnHelper.spawnAtPlayer(player, EntityType.SKELETON);
@@ -247,8 +263,8 @@ public final class CoreLibTestFunctions {
         helper.succeed();
     }
 
-    @GameTest(template = "core_lib:empty3x3x3")
-    public static void spawnHelper_spawnWithConfig(@NotNull GameTestHelper helper) {
+    @EmptyTemplate(value = "3x3x3", floor = true)
+    public static void spawnHelper_spawnWithConfig(@NotNull ExtendedGameTestHelper helper) {
         cleanup();
         var level = helper.getLevel();
         var pos = new Vec3(0, 0, 0);
@@ -263,34 +279,40 @@ public final class CoreLibTestFunctions {
         helper.succeed();
     }
 
+    // ========================================================================
+    // MessageHelper
+    // ========================================================================
 
-    @GameTest(template = "core_lib:empty3x3x3")
-    public static void messageHelper_chat(@NotNull GameTestHelper helper) {
+    @EmptyTemplate(value = "3x3x3", floor = true)
+    public static void messageHelper_chat(@NotNull ExtendedGameTestHelper helper) {
         cleanup();
         var player = makePlayer(helper);
         MessageHelper.chat(player, "Hello test");
         helper.succeed();
     }
 
-    @GameTest(template = "core_lib:empty3x3x3")
-    public static void messageHelper_title(@NotNull GameTestHelper helper) {
+    @EmptyTemplate(value = "3x3x3", floor = true)
+    public static void messageHelper_title(@NotNull ExtendedGameTestHelper helper) {
         cleanup();
         var player = makePlayer(helper);
         MessageHelper.title(player, "Title", "Subtitle");
         helper.succeed();
     }
 
-    @GameTest(template = "core_lib:empty3x3x3")
-    public static void messageHelper_actionBar(@NotNull GameTestHelper helper) {
+    @EmptyTemplate(value = "3x3x3", floor = true)
+    public static void messageHelper_actionBar(@NotNull ExtendedGameTestHelper helper) {
         cleanup();
         var player = makePlayer(helper);
         MessageHelper.actionBar(player, "Action bar message");
         helper.succeed();
     }
 
+    // ========================================================================
+    // WorldUtils
+    // ========================================================================
 
-    @GameTest(template = "core_lib:empty3x3x3")
-    public static void worldUtils_setBlock(@NotNull GameTestHelper helper) {
+    @EmptyTemplate(value = "3x3x3", floor = true)
+    public static void worldUtils_setBlock(@NotNull ExtendedGameTestHelper helper) {
         cleanup();
         var level = helper.getLevel();
         var pos = helper.absolutePos(new BlockPos(1, 1, 1));
@@ -302,8 +324,8 @@ public final class CoreLibTestFunctions {
         helper.succeed();
     }
 
-    @GameTest(template = "core_lib:empty3x3x3")
-    public static void worldUtils_fillArea(@NotNull GameTestHelper helper) {
+    @EmptyTemplate(value = "3x3x3", floor = true)
+    public static void worldUtils_fillArea(@NotNull ExtendedGameTestHelper helper) {
         cleanup();
         var level = helper.getLevel();
         var from = helper.absolutePos(new BlockPos(0, 1, 0));
@@ -313,8 +335,8 @@ public final class CoreLibTestFunctions {
         helper.succeed();
     }
 
-    @GameTest(template = "core_lib:empty3x3x3")
-    public static void worldUtils_getPlayersInRange(@NotNull GameTestHelper helper) {
+    @EmptyTemplate(value = "3x3x3", floor = true)
+    public static void worldUtils_getPlayersInRange(@NotNull ExtendedGameTestHelper helper) {
         cleanup();
         var level = helper.getLevel();
         var player = makePlayer(helper);
@@ -325,8 +347,8 @@ public final class CoreLibTestFunctions {
         helper.succeed();
     }
 
-    @GameTest(template = "core_lib:empty3x3x3")
-    public static void worldUtils_getBlockAir(@NotNull GameTestHelper helper) {
+    @EmptyTemplate(value = "3x3x3", floor = true)
+    public static void worldUtils_getBlockAir(@NotNull ExtendedGameTestHelper helper) {
         cleanup();
         var level = helper.getLevel();
         var pos = helper.absolutePos(new BlockPos(0, 5, 0));
@@ -335,9 +357,12 @@ public final class CoreLibTestFunctions {
         helper.succeed();
     }
 
+    // ========================================================================
+    // PlayerState / PlayerStateManager
+    // ========================================================================
 
-    @GameTest(template = "core_lib:empty3x3x3")
-    public static void playerState_saveLoad(@NotNull GameTestHelper helper) {
+    @EmptyTemplate(value = "3x3x3", floor = true)
+    public static void playerState_saveLoad(@NotNull ExtendedGameTestHelper helper) {
         cleanup();
         var player = makePlayer(helper);
         var saved = PlayerStateManager.save(player);
@@ -349,8 +374,8 @@ public final class CoreLibTestFunctions {
         helper.succeed();
     }
 
-    @GameTest(template = "core_lib:empty3x3x3")
-    public static void playerState_clear(@NotNull GameTestHelper helper) {
+    @EmptyTemplate(value = "3x3x3", floor = true)
+    public static void playerState_clear(@NotNull ExtendedGameTestHelper helper) {
         cleanup();
         var player = makePlayer(helper);
         player.setHealth(5.0f);
@@ -363,8 +388,8 @@ public final class CoreLibTestFunctions {
         helper.succeed();
     }
 
-    @GameTest(template = "core_lib:empty3x3x3")
-    public static void playerState_capture(@NotNull GameTestHelper helper) {
+    @EmptyTemplate(value = "3x3x3", floor = true)
+    public static void playerState_capture(@NotNull ExtendedGameTestHelper helper) {
         cleanup();
         var player = makePlayer(helper);
         var snapshot = PlayerState.capture(player);
@@ -375,9 +400,12 @@ public final class CoreLibTestFunctions {
         helper.succeed();
     }
 
+    // ========================================================================
+    // RestrictionManager
+    // ========================================================================
 
-    @GameTest(template = "core_lib:empty3x3x3")
-    public static void restrictionManager_register(@NotNull GameTestHelper helper) {
+    @EmptyTemplate(value = "3x3x3", floor = true)
+    public static void restrictionManager_register(@NotNull ExtendedGameTestHelper helper) {
         cleanup();
         var id = ResourceLocation.fromNamespaceAndPath("minecraft", "stone");
         RestrictionManager.register(RestrictionType.PLACE_BLOCK, id);
@@ -387,8 +415,8 @@ public final class CoreLibTestFunctions {
         helper.succeed();
     }
 
-    @GameTest(template = "core_lib:empty3x3x3")
-    public static void restrictionManager_unregister(@NotNull GameTestHelper helper) {
+    @EmptyTemplate(value = "3x3x3", floor = true)
+    public static void restrictionManager_unregister(@NotNull ExtendedGameTestHelper helper) {
         cleanup();
         var id = ResourceLocation.fromNamespaceAndPath("minecraft", "stone");
         RestrictionManager.register(RestrictionType.PLACE_BLOCK, id);
@@ -398,8 +426,8 @@ public final class CoreLibTestFunctions {
         helper.succeed();
     }
 
-    @GameTest(template = "core_lib:empty3x3x3")
-    public static void restrictionManager_getAll(@NotNull GameTestHelper helper) {
+    @EmptyTemplate(value = "3x3x3", floor = true)
+    public static void restrictionManager_getAll(@NotNull ExtendedGameTestHelper helper) {
         cleanup();
         var id = ResourceLocation.fromNamespaceAndPath("minecraft", "stone");
         RestrictionManager.register(RestrictionType.PLACE_BLOCK, id);
@@ -409,8 +437,8 @@ public final class CoreLibTestFunctions {
         helper.succeed();
     }
 
-    @GameTest(template = "core_lib:empty3x3x3")
-    public static void restrictionManager_clear(@NotNull GameTestHelper helper) {
+    @EmptyTemplate(value = "3x3x3", floor = true)
+    public static void restrictionManager_clear(@NotNull ExtendedGameTestHelper helper) {
         cleanup();
         var id = ResourceLocation.fromNamespaceAndPath("minecraft", "stone");
         RestrictionManager.register(RestrictionType.PLACE_BLOCK, id);
@@ -420,9 +448,12 @@ public final class CoreLibTestFunctions {
         helper.succeed();
     }
 
+    // ========================================================================
+    // ChallengeRegistry
+    // ========================================================================
 
-    @GameTest(template = "core_lib:empty3x3x3")
-    public static void challengeRegistry_registerGet(@NotNull GameTestHelper helper) {
+    @EmptyTemplate(value = "3x3x3", floor = true)
+    public static void challengeRegistry_registerGet(@NotNull ExtendedGameTestHelper helper) {
         cleanup();
         var def = ChallengeDefinition.of("test_challenge", "Test Challenge", List.of(), 60);
         ChallengeRegistry.register(def);
@@ -432,8 +463,8 @@ public final class CoreLibTestFunctions {
         helper.succeed();
     }
 
-    @GameTest(template = "core_lib:empty3x3x3")
-    public static void challengeRegistry_getAll(@NotNull GameTestHelper helper) {
+    @EmptyTemplate(value = "3x3x3", floor = true)
+    public static void challengeRegistry_getAll(@NotNull ExtendedGameTestHelper helper) {
         cleanup();
         var def = ChallengeDefinition.of("test_challenge2", "Test Challenge 2", List.of(), 60);
         ChallengeRegistry.register(def);
@@ -443,9 +474,12 @@ public final class CoreLibTestFunctions {
         helper.succeed();
     }
 
+    // ========================================================================
+    // ObjectiveTracker
+    // ========================================================================
 
-    @GameTest(template = "core_lib:empty3x3x3")
-    public static void objectiveTracker_startStop(@NotNull GameTestHelper helper) {
+    @EmptyTemplate(value = "3x3x3", floor = true)
+    public static void objectiveTracker_startStop(@NotNull ExtendedGameTestHelper helper) {
         cleanup();
         var player = makePlayer(helper);
         var challenge = new Challenge("track_challenge", List.of(), 60);
@@ -460,8 +494,8 @@ public final class CoreLibTestFunctions {
         helper.succeed();
     }
 
-    @GameTest(template = "core_lib:empty3x3x3")
-    public static void objectiveTracker_addRemoveObjective(@NotNull GameTestHelper helper) {
+    @EmptyTemplate(value = "3x3x3", floor = true)
+    public static void objectiveTracker_addRemoveObjective(@NotNull ExtendedGameTestHelper helper) {
         cleanup();
         var player = makePlayer(helper);
         var objective = new com.bikininjas.corelib.objective.SurvivalObjective("survive_obj", 100);
@@ -474,8 +508,8 @@ public final class CoreLibTestFunctions {
         helper.succeed();
     }
 
-    @GameTest(template = "core_lib:empty3x3x3")
-    public static void objectiveTracker_isTracking(@NotNull GameTestHelper helper) {
+    @EmptyTemplate(value = "3x3x3", floor = true)
+    public static void objectiveTracker_isTracking(@NotNull ExtendedGameTestHelper helper) {
         cleanup();
         var player = makePlayer(helper);
         helper.assertTrue(!ObjectiveTracker.isTracking(player),
@@ -488,8 +522,8 @@ public final class CoreLibTestFunctions {
         helper.succeed();
     }
 
-    @GameTest(template = "core_lib:empty3x3x3")
-    public static void objectiveTracker_getActiveChallengeName(@NotNull GameTestHelper helper) {
+    @EmptyTemplate(value = "3x3x3", floor = true)
+    public static void objectiveTracker_getActiveChallengeName(@NotNull ExtendedGameTestHelper helper) {
         cleanup();
         var player = makePlayer(helper);
         var challenge = new Challenge("name_challenge", List.of(), 60);
@@ -500,9 +534,12 @@ public final class CoreLibTestFunctions {
         helper.succeed();
     }
 
+    // ========================================================================
+    // RecipeAPI / RecipeBuilder
+    // ========================================================================
 
-    @GameTest(template = "core_lib:empty3x3x3")
-    public static void recipeAPI_addRemove(@NotNull GameTestHelper helper) {
+    @EmptyTemplate(value = "3x3x3", floor = true)
+    public static void recipeAPI_addRemove(@NotNull ExtendedGameTestHelper helper) {
         cleanup();
         var server = helper.getLevel().getServer();
         var id = "core_lib:test_recipe";
@@ -521,8 +558,8 @@ public final class CoreLibTestFunctions {
         helper.succeed();
     }
 
-    @GameTest(template = "core_lib:empty3x3x3")
-    public static void recipeBuilder_shapeless(@NotNull GameTestHelper helper) {
+    @EmptyTemplate(value = "3x3x3", floor = true)
+    public static void recipeBuilder_shapeless(@NotNull ExtendedGameTestHelper helper) {
         cleanup();
         var holder = RecipeBuilder.shapeless(new ItemStack(Items.GOLD_INGOT))
                 .requires(new ItemStack(Items.STONE))
@@ -532,8 +569,8 @@ public final class CoreLibTestFunctions {
         helper.succeed();
     }
 
-    @GameTest(template = "core_lib:empty3x3x3")
-    public static void recipeBuilder_shaped(@NotNull GameTestHelper helper) {
+    @EmptyTemplate(value = "3x3x3", floor = true)
+    public static void recipeBuilder_shaped(@NotNull ExtendedGameTestHelper helper) {
         cleanup();
         var holder = RecipeBuilder.shaped(new ItemStack(Items.IRON_INGOT))
                 .pattern(" D ")
@@ -546,7 +583,11 @@ public final class CoreLibTestFunctions {
         helper.succeed();
     }
 
-    private static @NotNull ServerPlayer makePlayer(@NotNull GameTestHelper helper) {
+    // ========================================================================
+    // Helpers
+    // ========================================================================
+
+    private static @NotNull ServerPlayer makePlayer(@NotNull ExtendedGameTestHelper helper) {
         var player = helper.makeMockPlayer(GameType.SURVIVAL);
         player.moveTo(
                 helper.absolutePos(player.blockPosition()).getX() + 1.5,

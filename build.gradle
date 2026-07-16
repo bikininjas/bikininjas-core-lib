@@ -68,6 +68,10 @@ dependencies {
     // jetbrains annotations for @NotNull/@Nullable
     implementation libs.jetbrains.annotations
 
+    // NeoForge Test Framework — for @ForEachTest / @EmptyTemplate / ExtendedGameTestHelper
+    compileOnly "net.neoforged:testframework:${neo_version}"
+    localRuntime "net.neoforged:testframework:${neo_version}"
+
     // Tests
     testImplementation libs.junit.jupiter
     testRuntimeOnly libs.junit.platform.launcher
