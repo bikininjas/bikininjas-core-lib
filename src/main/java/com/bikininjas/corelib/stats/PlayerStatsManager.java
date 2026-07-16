@@ -1,5 +1,6 @@
 package com.bikininjas.corelib.stats;
 
+import com.bikininjas.corelib.network.StatsSyncPayload;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -9,11 +10,14 @@ import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
+import net.neoforged.neoforge.event.tick.ServerTickEvent;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -189,6 +193,25 @@ public final class PlayerStatsManager {
                         cur.blocksBroken(), cur.crafts() + 1);
             });
             LOGGER.debug("Player {} crafted {}", serverPlayer.getUUID(), event.getCrafting().getDisplayName());
+        }
+
+        @SubscribeEvent
+        public static void onServerTick(ServerTickEvent.Post event) {
+            var server = event.getServer();
+            long tick = server.getTickCount();
+            if (tick % 20 != 0) {
+                return; // sync once per second
+            }
+            for (var player : server.getPlayerList().getPlayers()) {
+                if (!StatsDisplayPrefs.isEnabled(player)) {
+                    continue;
+                }
+                Set<String> fields = StatsDisplayPrefs.getVisibleFields(player);
+                PlayerStats s = getStats(player);
+                var payload = new StatsSyncPayload(true, fields,
+                        s.deaths(), s.kills(), s.blocksBroken(), s.crafts());
+                PacketDistributor.sendToPlayer(player, payload);
+            }
         }
     }
 }

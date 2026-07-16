@@ -1,49 +1,96 @@
 package com.bikininjas.corelib.command;
 
+import com.bikininjas.corelib.network.StatsSyncPayload;
+import com.bikininjas.corelib.stats.PlayerStats;
+import com.bikininjas.corelib.stats.PlayerStatsManager;
+import com.bikininjas.corelib.stats.StatsDisplayPrefs;
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.neoforged.neoforge.network.PacketDistributor;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
- * {@code /stats} command — displays tracked statistics for the issuing player.
+ * {@code /stats} command — toggle the stats HUD overlay and select visible fields.
  * <p>
- * Delegates to {@code PlayerStatsManager} for counter data.
+ * Usage:
+ * <ul>
+ *   <li>{@code /stats} — toggle the overlay on/off</li>
+ *   <li>{@code /stats deaths kills} — show only deaths and kills on the overlay</li>
+ * </ul>
  */
 public final class StatsCommand {
 
-    private StatsCommand() {
-    }
+    private StatsCommand() {}
 
     /**
-     * Register the {@code /stats} command on the given dispatcher.
-     *
-     * @param dispatcher the command dispatcher
+     * Register the {@code /stats} command tree on the given dispatcher.
      */
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("stats")
                 .requires(src -> src.getPlayer() != null)
+
+                // /stats — toggle overlay
                 .executes(ctx -> {
                     ServerPlayer player = ctx.getSource().getPlayer();
-                    if (player == null) {
-                        ctx.getSource().sendFailure(Component.literal("§cOnly players can use /stats."));
-                        return 0;
+                    if (player == null) return 0;
+
+                    boolean nowEnabled = StatsDisplayPrefs.toggle(player);
+                    syncNow(player);
+
+                    if (nowEnabled) {
+                        ctx.getSource().sendSuccess(
+                                () -> Component.literal("§aStats overlay enabled."), false);
+                    } else {
+                        ctx.getSource().sendSuccess(
+                                () -> Component.literal("§7Stats overlay disabled."), false);
                     }
-
-                    var stats = com.bikininjas.corelib.stats.PlayerStatsManager.getStats(player);
-
-                    ctx.getSource().sendSuccess(() -> Component.literal("§6§lYour Stats:"), false);
-                    ctx.getSource().sendSuccess(() -> Component.literal(
-                            String.format(" §c☠ Deaths: §f%d", stats.deaths())), false);
-                    ctx.getSource().sendSuccess(() -> Component.literal(
-                            String.format(" §e⚔ Kills: §f%d", stats.kills())), false);
-                    ctx.getSource().sendSuccess(() -> Component.literal(
-                            String.format(" §7⛏ Blocks Broken: §f%d", stats.blocksBroken())), false);
-                    ctx.getSource().sendSuccess(() -> Component.literal(
-                            String.format(" §d🔨 Crafts: §f%d", stats.crafts())), false);
                     return 1;
                 })
+
+                // /stats <fields...> — set visible fields + enable
+                .then(Commands.argument("fields", StringArgumentType.greedyString())
+                        .suggests((ctx, builder) -> {
+                            for (String f : StatsDisplayPrefs.getAllFields()) {
+                                if (f.startsWith(builder.getRemainingLowerCase())) {
+                                    builder.suggest(f);
+                                }
+                            }
+                            return builder.buildFuture();
+                        })
+                        .executes(ctx -> {
+                            ServerPlayer player = ctx.getSource().getPlayer();
+                            if (player == null) return 0;
+
+                            String raw = StringArgumentType.getString(ctx, "fields");
+                            Set<String> requested = new HashSet<>();
+                            for (String token : raw.split("\\s+")) {
+                                requested.add(token.trim().toLowerCase());
+                            }
+
+                            StatsDisplayPrefs.setVisibleFields(player, requested);
+                            StatsDisplayPrefs.toggle(player); // ensure enabled
+                            syncNow(player);
+
+                            ctx.getSource().sendSuccess(() -> Component.literal(
+                                    "§aStats overlay updated: " + String.join(", ", StatsDisplayPrefs.getVisibleFields(player))), false);
+                            return 1;
+                        })
+                )
         );
+    }
+
+    private static void syncNow(ServerPlayer player) {
+        boolean enabled = StatsDisplayPrefs.isEnabled(player);
+        Set<String> fields = StatsDisplayPrefs.getVisibleFields(player);
+        PlayerStats stats = PlayerStatsManager.getStats(player);
+        var payload = new StatsSyncPayload(enabled, fields,
+                stats.deaths(), stats.kills(), stats.blocksBroken(), stats.crafts());
+        PacketDistributor.sendToPlayer(player, payload);
     }
 }
