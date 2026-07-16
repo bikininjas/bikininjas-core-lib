@@ -9,7 +9,9 @@ import com.bikininjas.corelib.network.NetworkHandler;
 import com.bikininjas.corelib.objective.ObjectiveTracker;
 import com.bikininjas.corelib.player.PlayerStateManager;
 import com.bikininjas.corelib.randomevent.RandomEventManager;
+import com.bikininjas.corelib.recipe.RecipeAPI;
 import com.bikininjas.corelib.registry.Registers;
+import com.bikininjas.corelib.restriction.RestrictionManager;
 import com.bikininjas.corelib.stats.PlayerStatsManager;
 import com.bikininjas.corelib.time.TimeManager;
 import net.neoforged.bus.api.IEventBus;
@@ -41,6 +43,7 @@ public final class CoreLib {
         ObjectiveTracker.currentTick();
         CommandRegister.init();
         PlayerStatsManager.init();
+        RestrictionManager.init();
 
         RandomEventManager.getInstance();
     }
