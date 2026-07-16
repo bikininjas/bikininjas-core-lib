@@ -26,7 +26,6 @@ public final class RecipeAPI {
 
     private static final Map<String, RecipeHolder<?>> pendingAdditions = new ConcurrentHashMap<>();
     private static final java.util.Set<String> pendingRemovals = ConcurrentHashMap.newKeySet();
-    private static RecipeManager cachedManager;
 
     static {
         NeoForge.EVENT_BUS.addListener((ServerAboutToStartEvent event) -> {
@@ -57,12 +56,12 @@ public final class RecipeAPI {
     }
 
     /**
-     * Sync the current modified recipe set to a single player.
+     * Sync the server's current recipe list to a single player.
      */
     public static void syncToPlayer(@NotNull ServerPlayer player) {
         Objects.requireNonNull(player, "player must not be null");
-        var recipeManager = player.server.getRecipeManager();
-        player.connection.send(new ClientboundUpdateRecipesPacket(java.util.List.copyOf(pendingAdditions.values())));
+        player.connection.send(new ClientboundUpdateRecipesPacket(
+                java.util.List.copyOf(player.server.getRecipeManager().getRecipes())));
     }
 
     /**
@@ -78,33 +77,44 @@ public final class RecipeAPI {
     // -- Internal ------------------------------------------------------------
 
     private static void applyPending(MinecraftServer server) {
-        var recipeManager = server.getRecipeManager();
-        var recipes = recipeManager.getRecipes();
-        java.util.Map<String, RecipeHolder<?>> map = new java.util.LinkedHashMap<>(recipes
-                .stream()
-                .collect(java.util.stream.Collectors.toMap(
-                        h -> h.id().toString(),
-                        h -> (RecipeHolder<?>) h,
-                        (a, b) -> a,
-                        java.util.LinkedHashMap::new
-                )));
-
-        // Remove pending
-        for (var id : pendingRemovals) {
-            map.remove(id);
+        var manager = server.getRecipeManager();
+        if (pendingAdditions.isEmpty() && pendingRemovals.isEmpty()) {
+            return;
         }
 
-        // Add pending
+        var recipeMap = new java.util.LinkedHashMap<net.minecraft.resources.ResourceLocation, RecipeHolder<?>>();
+        var byKey = com.google.common.collect.MultimapBuilder.hashKeys().arrayListValues()
+                .<net.minecraft.world.item.crafting.RecipeType<?>, RecipeHolder<?>>build();
+
+        for (var holder : manager.getRecipes()) {
+            var loc = holder.id();
+            if (!pendingRemovals.contains(loc.toString())) {
+                recipeMap.put(loc, holder);
+                byKey.put(holder.value().getType(), holder);
+            }
+        }
+
         for (var entry : pendingAdditions.entrySet()) {
             var loc = net.minecraft.resources.ResourceLocation.parse(entry.getKey());
-            map.put(entry.getKey(), entry.getValue());
+            var holder = entry.getValue();
+            recipeMap.put(loc, holder);
+            byKey.put(holder.value().getType(), holder);
         }
 
-        // Rebuild the recipe list
-        var newList = java.util.List.copyOf(map.values());
-        // We can't replace the recipe manager's internal list directly,
-        // but we can update the server's recipe access.
-        // The recipe sync happens automatically when a player joins.
-        cachedManager = recipeManager;
+        try {
+            var managerClass = net.minecraft.world.item.crafting.RecipeManager.class;
+            var recipesField = managerClass.getDeclaredField("recipes");
+            recipesField.setAccessible(true);
+            recipesField.set(manager, recipeMap);
+
+            var byNameField = managerClass.getDeclaredField("byName");
+            byNameField.setAccessible(true);
+            byNameField.set(manager, recipeMap);
+        } catch (java.lang.ReflectiveOperationException e) {
+            com.bikininjas.corelib.log.LogManager.getLogger("core_lib", RecipeAPI.class)
+                    .error("Failed to apply pending recipes")
+                    .cause(e)
+                    .report();
+        }
     }
 }

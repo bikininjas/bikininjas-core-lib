@@ -123,8 +123,8 @@ public final class WorldUtils {
         Objects.requireNonNull(level, "level must not be null");
         Objects.requireNonNull(entityClass, "entityClass must not be null");
         return level.getEntitiesOfClass(entityClass,
-                new AABB(level.getMinBuildHeight(), level.getMinBuildHeight(), level.getMinBuildHeight(),
-                        level.getMaxBuildHeight(), level.getMaxBuildHeight(), level.getMaxBuildHeight()));
+                new AABB(Double.NEGATIVE_INFINITY, level.getMinBuildHeight(), Double.NEGATIVE_INFINITY,
+                        Double.POSITIVE_INFINITY, level.getMaxBuildHeight(), Double.POSITIVE_INFINITY));
     }
 
     /**

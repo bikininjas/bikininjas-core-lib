@@ -116,11 +116,19 @@ public final class PlayerStatsManager {
 
         @SubscribeEvent
         static void onDeath(@NotNull LivingDeathEvent event) {
-            if (event.getEntity() instanceof ServerPlayer victim) {
-                mutate(victim, s -> new PlayerStats(s.deaths() + 1, s.kills(), s.blocksBroken(), s.crafts()));
-            }
-            if (event.getSource().getEntity() instanceof ServerPlayer killer) {
-                mutate(killer, s -> new PlayerStats(s.deaths(), s.kills() + 1, s.blocksBroken(), s.crafts()));
+            var victim = event.getEntity() instanceof ServerPlayer v ? v : null;
+            var killer = event.getSource().getEntity() instanceof ServerPlayer k ? k : null;
+            if (victim == null && killer == null) return;
+
+            if (victim != null && killer != null && victim.getUUID().equals(killer.getUUID())) {
+                mutate(victim, s -> new PlayerStats(s.deaths() + 1, s.kills() + 1, s.blocksBroken(), s.crafts()));
+            } else {
+                if (victim != null) {
+                    mutate(victim, s -> new PlayerStats(s.deaths() + 1, s.kills(), s.blocksBroken(), s.crafts()));
+                }
+                if (killer != null) {
+                    mutate(killer, s -> new PlayerStats(s.deaths(), s.kills() + 1, s.blocksBroken(), s.crafts()));
+                }
             }
         }
 
