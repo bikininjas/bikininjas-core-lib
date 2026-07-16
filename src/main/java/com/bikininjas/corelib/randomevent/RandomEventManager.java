@@ -77,7 +77,7 @@ public final class RandomEventManager {
         this.currentCooldown = minInterval;
         try {
             NeoForge.EVENT_BUS.register(this);
-        } catch (Throwable ignored) {
+        } catch (Exception ignored) {
             // Event bus unavailable outside a Minecraft runtime — tick scheduling disabled.
         }
     }

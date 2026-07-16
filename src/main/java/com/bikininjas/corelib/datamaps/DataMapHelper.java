@@ -1,14 +1,10 @@
 package com.bikininjas.corelib.datamaps;
 
-import com.mojang.serialization.Codec;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.neoforged.neoforge.registries.DeferredHolder;
-
-import java.util.function.Supplier;
 
 /**
  * Utility class for working with NeoForge Data Maps and Data Components.
@@ -30,20 +26,6 @@ public final class DataMapHelper {
      */
     public static <T> DataComponentType.Builder<T> componentBuilder() {
         return DataComponentType.builder();
-    }
-
-    /**
-     * Register a simple DataComponentType with a codec.
-     */
-    public static <T> DeferredHolder<DataComponentType<?>, DataComponentType<T>> registerComponent(
-            String name,
-            Supplier<? extends DataComponentType<T>> supplier
-    ) {
-        // Components are typically registered via DeferredRegister<DataComponentType<?>>
-        // This is a convenience — the actual DeferredRegister should be in the calling mod.
-        throw new UnsupportedOperationException(
-                "Use DeferredRegister.create(Registries.DATA_COMPONENT_TYPE, modid).register(name, supplier) instead."
-        );
     }
 
     // ──────────────────────────────────────────────

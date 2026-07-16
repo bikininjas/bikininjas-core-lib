@@ -29,6 +29,12 @@ public final class TimeManager {
 
     private TimeManager() {}
 
+    /**
+     * Forces static class initialisation, registering the tick handler on the
+     * NeoForge event bus. Safe to call multiple times; idempotent.
+     */
+    public static void init() {}
+
     // ──────────────────────────────────────────────
     //  State storage
     // ──────────────────────────────────────────────

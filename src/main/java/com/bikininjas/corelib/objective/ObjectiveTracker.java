@@ -73,6 +73,12 @@ public final class ObjectiveTracker {
     }
 
     /**
+     * Forces static class initialisation, registering the event handlers on the
+     * NeoForge event bus. Safe to call multiple times; idempotent.
+     */
+    public static void init() {}
+
+    /**
      * @return the current server tick counter (monotonic, advanced each tick).
      */
     public static long currentTick() {
@@ -82,18 +88,18 @@ public final class ObjectiveTracker {
     /**
      * Begins tracking a challenge for the given player.
      *
-     * @param player   the player to track; never {@code null}.
-     * @param challenge the challenge whose objectives are assigned; never {@code null}.
+     * @param player     the player to track; never {@code null}.
+     * @param definition the challenge definition to start; never {@code null}.
      */
-    public static void startChallenge(@NotNull ServerPlayer player, @NotNull Challenge challenge) {
+    public static void startChallenge(@NotNull ServerPlayer player, @NotNull ChallengeDefinition definition) {
         Objects.requireNonNull(player, "player");
-        Objects.requireNonNull(challenge, "challenge");
+        Objects.requireNonNull(definition, "definition");
         UUID id = player.getUUID();
-        objectives.put(id, List.copyOf(challenge.objectives()));
+        objectives.put(id, List.copyOf(definition.objectives()));
         COUNTS.put(id, new ConcurrentHashMap<>());
         START_TIMES.put(id, currentTick);
-        ACTIVE_CHALLENGE_NAMES.put(id, challenge.name());
-        LOGGER.debug("Started challenge '{}' for {}", challenge.name(), id);
+        ACTIVE_CHALLENGE_NAMES.put(id, definition.name());
+        LOGGER.debug("Started challenge '{}' for {}", definition.name(), id);
         saveToPlayer(player);
     }
 

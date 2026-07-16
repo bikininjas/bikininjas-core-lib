@@ -1,6 +1,5 @@
 package com.bikininjas.corelib.unit;
 
-import com.bikininjas.corelib.objective.Challenge;
 import com.bikininjas.corelib.objective.ChallengeDefinition;
 import com.bikininjas.corelib.objective.Objective;
 import com.bikininjas.corelib.objective.SurvivalObjective;
@@ -32,24 +31,6 @@ class ChallengeDefinitionTests {
         var obj = new SurvivalObjective("Survive", 100);
         var def = new ChallengeDefinition("no_mods", "No Mods", List.of(obj), 0);
         assertTrue(def.requiredMods().isEmpty());
-    }
-
-    @Test
-    void toChallengeCreatesCorrectRuntimeChallenge() {
-        var obj = new SurvivalObjective("Survive", 200);
-        var def = new ChallengeDefinition("survival", "Survival", List.of(obj), 300);
-        Challenge c = def.toChallenge();
-        assertEquals("survival", c.name());
-        assertEquals(1, c.objectives().size());
-        assertEquals(300, c.timeLimitSeconds());
-    }
-
-    @Test
-    void toChallengeDefensivelyCopiesObjectives() {
-        var obj = new SurvivalObjective("Survive", 200);
-        var def = new ChallengeDefinition("x", "X", List.of(obj), 0);
-        Challenge c = def.toChallenge();
-        assertEquals(1, c.objectives().size());
     }
 
     @Test

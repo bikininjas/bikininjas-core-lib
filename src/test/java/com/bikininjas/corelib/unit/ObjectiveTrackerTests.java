@@ -1,6 +1,6 @@
 package com.bikininjas.corelib.unit;
 
-import com.bikininjas.corelib.objective.Challenge;
+import com.bikininjas.corelib.objective.ChallengeDefinition;
 import com.bikininjas.corelib.objective.CollectObjective;
 import com.bikininjas.corelib.objective.KillObjective;
 import com.bikininjas.corelib.objective.Objective;
@@ -159,19 +159,19 @@ class ObjectiveTrackerTests {
     }
 
     // ──────────────────────────────────────────────
-    //  Challenge record
+    //  Challenge definition record
     // ──────────────────────────────────────────────
 
     @Test
-    void challengeRecord() {
+    void challengeDefinitionRecord() {
         List<Objective> objs = List.of(
                 new KillObjective("A", EntityType.CREEPER, 3),
                 new CollectObjective("B", net.minecraft.world.item.Items.EMERALD, 2)
         );
-        Challenge c = new Challenge("Trial", objs, 60);
-        assertEquals("Trial", c.name());
-        assertEquals(2, c.objectives().size());
-        assertEquals(60, c.timeLimitSeconds());
+        ChallengeDefinition def = new ChallengeDefinition("Trial", "Trial", objs, 60);
+        assertEquals("Trial", def.name());
+        assertEquals(2, def.objectives().size());
+        assertEquals(60, def.timeLimitSeconds());
     }
 
     // ──────────────────────────────────────────────
@@ -255,14 +255,14 @@ class ObjectiveTrackerTests {
 
     @Test
     void startChallengeRejectsNullPlayer() {
-        Challenge c = new Challenge("C", List.of(), 0);
+        ChallengeDefinition def = new ChallengeDefinition("C", "C", List.of(), 0);
         assertThrows(NullPointerException.class,
-                () -> ObjectiveTracker.startChallenge(null, c),
+                () -> ObjectiveTracker.startChallenge(null, def),
                 "startChallenge(null, ...) must throw NPE");
     }
 
     @Test
-    void startChallengeRejectsNullChallenge() {
+    void startChallengeRejectsNullDefinition() {
         ServerPlayer player = FakePlayer.create(PLAYER_ID);
         assertThrows(NullPointerException.class,
                 () -> ObjectiveTracker.startChallenge(player, null),
@@ -289,9 +289,9 @@ class ObjectiveTrackerTests {
         ServerPlayer player = FakePlayer.create(PLAYER_ID);
         assertFalse(ObjectiveTracker.isTracking(player));
 
-        Challenge c = new Challenge("C",
+        ChallengeDefinition def = new ChallengeDefinition("C", "C",
                 List.of(new KillObjective("K", EntityType.COW, 1)), 0);
-        ObjectiveTracker.startChallenge(player, c);
+        ObjectiveTracker.startChallenge(player, def);
         assertTrue(ObjectiveTracker.isTracking(player));
         assertEquals(1, ObjectiveTracker.getObjectives(player).size());
 

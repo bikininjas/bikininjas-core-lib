@@ -1,5 +1,8 @@
 package com.bikininjas.corelib.command;
 
+import com.bikininjas.corelib.objective.ChallengeDefinition;
+import com.bikininjas.corelib.objective.ChallengeRegistry;
+import com.bikininjas.corelib.objective.ObjectiveTracker;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
@@ -55,7 +58,7 @@ public final class ChallengeCommand {
 
     private static int handleList(CommandContext<CommandSourceStack> ctx) {
         var source = ctx.getSource();
-        var definitions = com.bikininjas.corelib.objective.ChallengeRegistry.getAvailable();
+        var definitions = ChallengeRegistry.getAvailable();
 
         if (definitions.isEmpty()) {
             source.sendSuccess(() -> Component.literal("§7No challenges available."), false);
@@ -85,28 +88,27 @@ public final class ChallengeCommand {
         }
 
         String name = StringArgumentType.getString(ctx, "name");
-        var def = com.bikininjas.corelib.objective.ChallengeRegistry.get(name);
+        ChallengeDefinition def = ChallengeRegistry.get(name);
         if (def == null) {
             source.sendFailure(Component.literal("§cChallenge '" + name + "' not found."));
             return 0;
         }
 
         // Check mod requirements.
-        if (!com.bikininjas.corelib.objective.ChallengeRegistry.areModsLoaded(def)) {
+        if (!ChallengeRegistry.areModsLoaded(def)) {
             source.sendFailure(Component.literal(
                     "§cRequired mods not loaded for challenge '" + name + "'."));
             return 0;
         }
 
         // Check no active challenge.
-        if (com.bikininjas.corelib.objective.ObjectiveTracker.isTracking(player)) {
+        if (ObjectiveTracker.isTracking(player)) {
             source.sendFailure(Component.literal(
                     "§cYou already have an active challenge. Use /challenge abort first."));
             return 0;
         }
 
-        var challenge = def.toChallenge();
-        com.bikininjas.corelib.objective.ObjectiveTracker.startChallenge(player, challenge);
+        ObjectiveTracker.startChallenge(player, def);
 
         source.sendSuccess(() -> Component.literal(
                 "§a✔ Challenge '§f" + def.displayName() + "§a' started!"), false);
@@ -121,15 +123,15 @@ public final class ChallengeCommand {
             return 0;
         }
 
-        if (!com.bikininjas.corelib.objective.ObjectiveTracker.isTracking(player)) {
+        if (!ObjectiveTracker.isTracking(player)) {
             source.sendFailure(Component.literal("§cYou have no active challenge."));
             return 0;
         }
 
-        String name = com.bikininjas.corelib.objective.ObjectiveTracker.getActiveChallengeName(player);
-        float progress = com.bikininjas.corelib.objective.ObjectiveTracker.getProgress(player);
+        String name = ObjectiveTracker.getActiveChallengeName(player);
+        float progress = ObjectiveTracker.getProgress(player);
         int pct = Math.round(progress * 100.0f);
-        long elapsed = com.bikininjas.corelib.objective.ObjectiveTracker.getElapsedSeconds(player);
+        long elapsed = ObjectiveTracker.getElapsedSeconds(player);
         long mins = elapsed / 60;
         long secs = elapsed % 60;
 
@@ -137,7 +139,7 @@ public final class ChallengeCommand {
         source.sendSuccess(() -> Component.literal(String.format(
                 "§7Progress: §a%d%% §7| §eTime: %d:%02d", pct, mins, secs)), false);
 
-        var objectives = com.bikininjas.corelib.objective.ObjectiveTracker.getObjectives(player);
+        var objectives = ObjectiveTracker.getObjectives(player);
         for (var obj : objectives) {
             int cur = obj.progressValue(player);
             int tgt = obj.target();
@@ -156,13 +158,13 @@ public final class ChallengeCommand {
             return 0;
         }
 
-        if (!com.bikininjas.corelib.objective.ObjectiveTracker.isTracking(player)) {
+        if (!ObjectiveTracker.isTracking(player)) {
             source.sendFailure(Component.literal("§cYou have no active challenge to abort."));
             return 0;
         }
 
-        String name = com.bikininjas.corelib.objective.ObjectiveTracker.getActiveChallengeName(player);
-        com.bikininjas.corelib.objective.ObjectiveTracker.stopChallenge(player);
+        String name = ObjectiveTracker.getActiveChallengeName(player);
+        ObjectiveTracker.stopChallenge(player);
 
         source.sendSuccess(() -> Component.literal(
                 "§eChallenge '§f" + (name != null ? name : "?") + "§e' aborted."), false);
@@ -175,7 +177,7 @@ public final class ChallengeCommand {
 
     private static CompletableFuture<Suggestions> suggestChallenges(
             CommandContext<CommandSourceStack> ctx, SuggestionsBuilder builder) {
-        var definitions = com.bikininjas.corelib.objective.ChallengeRegistry.getAvailable();
+        var definitions = ChallengeRegistry.getAvailable();
         for (var def : definitions) {
             if (def.name().startsWith(builder.getRemainingLowerCase())) {
                 builder.suggest(def.name(), Component.literal(def.displayName()));

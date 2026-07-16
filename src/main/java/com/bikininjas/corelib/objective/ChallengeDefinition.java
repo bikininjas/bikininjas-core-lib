@@ -12,8 +12,8 @@ import java.util.List;
  * an optional wall-clock time limit, and a list of mod IDs that must be loaded
  * before the challenge can be started.
  * <p>
- * Use {@link #toChallenge()} to create a runtime {@link Challenge} instance for
- * the {@link ObjectiveTracker}.
+ * Passed directly to {@link ObjectiveTracker#startChallenge} — there is no
+ * separate {@code Challenge} wrapper type.
  *
  * @param name             short registry key (e.g. {@code "dragon_rush"});
  *                         never {@code null}.
@@ -57,15 +57,5 @@ public record ChallengeDefinition(
             int timeLimitSeconds
     ) {
         this(name, displayName, objectives, timeLimitSeconds, List.of());
-    }
-
-    /**
-     * Convert this definition to a runtime {@link Challenge} for the
-     * {@link ObjectiveTracker}.
-     *
-     * @return a new {@link Challenge} with the same objectives and time limit.
-     */
-    public Challenge toChallenge() {
-        return new Challenge(name, objectives, timeLimitSeconds);
     }
 }
