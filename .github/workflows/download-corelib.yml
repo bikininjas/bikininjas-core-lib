@@ -20,7 +20,7 @@ on:
       repo:
         required: false
         type: string
-        default: 'bikininjas/bikininjas-mclib'
+        default: 'bikininjas/bikininjas-core-lib'
         description: 'GitHub repo owning the release'
 
 jobs:
@@ -45,6 +45,6 @@ jobs:
         run: |
           VERSION="${{ steps.resolve.outputs.version }}"
           mkdir -p libs
-          URL="https://github.com/${{ inputs.repo }}/releases/download/v${VERSION}/core_lib-${VERSION}.jar"
+          URL="https://github.com/${{ inputs.repo }}/releases/download/v${VERSION}/bikininjas-core_lib-${VERSION}.jar"
           curl -sSfL -o "libs/core_lib-${VERSION}.jar" "$URL"
           echo "✅ core-lib v${VERSION} downloaded ($(stat -c%s "libs/core_lib-${VERSION}.jar" 2>/dev/null || wc -c < "libs/core_lib-${VERSION}.jar") bytes)"

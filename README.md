@@ -384,7 +384,7 @@ dependencies {
 ```yaml
 jobs:
   download-corelib:
-    uses: bikininjas/bikininjas-mclib/.github/workflows/download-corelib.yml@master
+    uses: bikininjas/bikininjas-core-lib/.github/workflows/download-corelib.yml@master
     # version est optionnel — si omis, résout automatiquement la dernière release
 
   build:
@@ -411,7 +411,7 @@ jobs:
       - name: Resolve core-lib version
         id: corelib
         run: |
-          VERSION=$(curl -sSf https://api.github.com/repos/bikininjas/bikininjas-mclib/releases/latest | jq -r .tag_name | sed 's/^v//')
+          VERSION=$(curl -sSf https://api.github.com/repos/bikininjas/bikininjas-core-lib/releases/latest | jq -r .tag_name | sed 's/^v//')
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
 
       - name: Download core-lib JAR
@@ -419,7 +419,7 @@ jobs:
           V="${{ steps.corelib.outputs.version }}"
           mkdir -p libs
           curl -sSfL -o "libs/core_lib-${V}.jar" \
-            "https://github.com/bikininjas/bikininjas-mclib/releases/download/v${V}/core_lib-${V}.jar"
+            "https://github.com/bikininjas/bikininjas-core-lib/releases/download/v${V}/core_lib-${V}.jar"
 
       - uses: actions/setup-java@v4
         with:
