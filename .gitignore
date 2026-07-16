@@ -85,3 +85,6 @@ build-rootbak/
 # ============================================================
 *.ctxt
 .mtj.tmp/
+
+# Local build output
+mods/
