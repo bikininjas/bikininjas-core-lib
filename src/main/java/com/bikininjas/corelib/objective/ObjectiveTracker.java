@@ -77,6 +77,34 @@ public final class ObjectiveTracker {
      */
     public static void init() {}
 
+    // ──────────────────────────────────────────────
+    //  Test support — exposed for JUnit tests in a
+    //  different package (corelib.unit). These are
+    //  not part of the public API contract for mods.
+    // ──────────────────────────────────────────────
+
+    /**
+     * Reset all tracking state. Primarily intended for test cleanup
+     * ({@code @AfterEach}) so static maps don't leak between tests.
+     */
+    public static void resetAll() {
+        objectives.clear();
+        COUNTS.clear();
+        START_TIMES.clear();
+        ACTIVE_CHALLENGE_NAMES.clear();
+    }
+
+    /**
+     * Insert a count map for the given player. Primarily intended for
+     * test setup where objective progress needs to be simulated.
+     *
+     * @param playerId the player's UUID
+     * @param counts   description → count map to inject
+     */
+    public static void setCounts(UUID playerId, Map<String, Integer> counts) {
+        COUNTS.put(playerId, counts);
+    }
+
     /**
      * @return the current server tick counter (monotonic, advanced each tick).
      */

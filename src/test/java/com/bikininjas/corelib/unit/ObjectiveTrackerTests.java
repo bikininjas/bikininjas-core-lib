@@ -92,8 +92,7 @@ class ObjectiveTrackerTests {
     @AfterEach
     void clearState() {
         // Best-effort cleanup of static maps between tests.
-        ObjectiveTracker.COUNTS.clear();
-        ObjectiveTracker.START_TIMES.clear();
+        ObjectiveTracker.resetAll();
     }
 
     // ──────────────────────────────────────────────
@@ -190,7 +189,7 @@ class ObjectiveTrackerTests {
         // Inject 2 kills → 0.5
         Map<String, Integer> counts = new ConcurrentHashMap<>();
         counts.put("Kill pigs", 2);
-        ObjectiveTracker.COUNTS.put(PLAYER_ID, counts);
+        ObjectiveTracker.setCounts(PLAYER_ID, counts);
         assertEquals(0.5f, o.progress(player), 0.0001f);
         assertEquals(2, o.progressValue(player));
 
@@ -215,7 +214,7 @@ class ObjectiveTrackerTests {
 
         Map<String, Integer> counts = new ConcurrentHashMap<>();
         counts.put("Gold", 1);
-        ObjectiveTracker.COUNTS.put(PLAYER_ID, counts);
+        ObjectiveTracker.setCounts(PLAYER_ID, counts);
         assertEquals(0.5f, o.progress(player), 0.0001f);
 
         counts.put("Gold", 2);
@@ -314,7 +313,7 @@ class ObjectiveTrackerTests {
         ServerPlayer player = FakePlayer.create(PLAYER_ID);
         Map<String, Integer> counts = new ConcurrentHashMap<>();
         counts.put(a.description(), 3);
-        ObjectiveTracker.COUNTS.put(PLAYER_ID, counts);
+        ObjectiveTracker.setCounts(PLAYER_ID, counts);
         assertEquals(3, b.progressValue(player));
     }
 }
