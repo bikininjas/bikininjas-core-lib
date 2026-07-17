@@ -14,6 +14,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Programmatic loot table injection.
@@ -70,7 +71,7 @@ public final class LootTableHelper {
         Objects.requireNonNull(lootTableId, "lootTableId must not be null");
         Objects.requireNonNull(itemId, "itemId must not be null");
 
-        INJECTIONS.computeIfAbsent(lootTableId, k -> new ArrayList<>())
+        INJECTIONS.computeIfAbsent(lootTableId, k -> new CopyOnWriteArrayList<>())
                   .add(new LootEntry(itemId, weight, minCount, maxCount));
         LOGGER.debug("Registered loot injection: {} → {}", lootTableId, itemId);
     }

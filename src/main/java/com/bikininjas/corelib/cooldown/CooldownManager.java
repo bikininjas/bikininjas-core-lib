@@ -67,12 +67,14 @@ public final class CooldownManager {
     }
 
     /**
-     * Get the remaining cooldown ticks for the given player and key.
-     * The result is approximate — exact ticks require a {@link net.minecraft.server.level.ServerLevel} reference.
+     * Check if the given player is on cooldown for the given key.
+     * Without a {@link net.minecraft.server.level.ServerLevel}, only a boolean
+     * answer is available. For exact remaining ticks, use
+     * {@link #getRemainingTicks(net.minecraft.server.level.ServerLevel, UUID, String)}.
      *
      * @param playerId the player's UUID
      * @param key      cooldown identifier
-     * @return remaining ticks, 0 if not on cooldown
+     * @return 1 if still on cooldown, 0 otherwise
      */
     public static long getRemainingTicks(@NotNull UUID playerId, @NotNull String key) {
         Objects.requireNonNull(playerId, "playerId must not be null");
@@ -83,7 +85,7 @@ public final class CooldownManager {
             return 0;
         }
         Long expiry = playerMap.get(playerId);
-        return (expiry != null) ? expiry : 0;
+        return (expiry != null) ? 1 : 0;
     }
 
     /**
