@@ -565,3 +565,40 @@ Objects.requireNonNull() en début de méthode publique
 - `feat:` → **minor** (1.1.0)
 - `fix:`, `perf:` → **patch** (1.0.1)
 - `chore:`, `docs:`, `style:`, `refactor:`, `test:` → skip release
+## 🎛️ BikiniConfig — In-Game Configuration UI
+
+The mod includes a built-in configuration screen accessible via `/bikininjas` or `/bn`.
+Options are persisted to `config/bikininjas.json` across server restarts.
+
+### API for child mods
+
+Child mods register their configurable options via `BikiniConfigRegistry`:
+
+```java
+// Quick boolean option
+BikiniConfigRegistry.registerBool("my_mod", "enable_feature", "Feature Name", true);
+
+// Quick enum option
+BikiniConfigRegistry.registerEnum("my_mod", "difficulty", "Difficulty", "normal", "easy", "normal", "hard");
+
+// Read option at runtime
+if (BikiniConfigRegistry.isEnabled("my_mod", "enable_feature")) { ... }
+
+// Full custom option
+BikiniConfigRegistry.registerOption(new ConfigOption(
+    "my_mod", "speed", "General",
+    Component.literal("Speed"), Component.literal("Speed multiplier"),
+    ConfigOption.OptionType.INT, 1, 1, null
+));
+```
+
+### Option types
+| Type | UI Behavior |
+|---|---|
+| BOOL | Toggle on/off |
+| ENUM | Cycle through values |
+| INT/FLOAT/STRING | Display-only (coming soon) |
+
+### GameTests
+4 GameTests validate the config system: registry CRUD, boolean toggle, enum cycling, JSON save/load.
+
