@@ -1,8 +1,10 @@
 package com.bikininjas.corelib.enchantment;
 
 import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.ItemEnchantments;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -77,5 +79,57 @@ public final class EnchantmentUtils {
      */
     public static boolean canEnchantAtLevel(int level) {
         return level >= 0 && level <= MAX_LEVEL;
+    }
+
+    /**
+     * Check whether the given item stack has the specified enchantment.
+     *
+     * @param stack       the item stack to check
+     * @param enchantment the enchantment holder
+     * @return true if the stack has the enchantment at a positive level
+     */
+    public static boolean hasEnchantment(
+            @NotNull ItemStack stack,
+            @NotNull Holder<Enchantment> enchantment) {
+        Objects.requireNonNull(stack, "stack must not be null");
+        Objects.requireNonNull(enchantment, "enchantment must not be null");
+        return stack.getEnchantments().getLevel(enchantment) > 0;
+    }
+
+    /**
+     * Get the level of the specified enchantment on the given item stack.
+     *
+     * @param stack       the item stack to check
+     * @param enchantment the enchantment holder
+     * @return the enchantment level (0 if not present)
+     */
+    public static int getEnchantmentLevel(
+            @NotNull ItemStack stack,
+            @NotNull Holder<Enchantment> enchantment) {
+        Objects.requireNonNull(stack, "stack must not be null");
+        Objects.requireNonNull(enchantment, "enchantment must not be null");
+        return stack.getEnchantments().getLevel(enchantment);
+    }
+
+    /**
+     * Remove the specified enchantment from the item stack.
+     *
+     * @param stack       the item stack to modify
+     * @param enchantment the enchantment holder to remove
+     * @return true if the enchantment was present and removed, false otherwise
+     */
+    public static boolean removeEnchantment(
+            @NotNull ItemStack stack,
+            @NotNull Holder<Enchantment> enchantment) {
+        Objects.requireNonNull(stack, "stack must not be null");
+        Objects.requireNonNull(enchantment, "enchantment must not be null");
+        var current = stack.getEnchantments();
+        if (current.getLevel(enchantment) <= 0) {
+            return false;
+        }
+        var mutable = new ItemEnchantments.Mutable(current);
+        mutable.set(enchantment, 0);
+        stack.set(DataComponents.ENCHANTMENTS, mutable.toImmutable());
+        return true;
     }
 }
