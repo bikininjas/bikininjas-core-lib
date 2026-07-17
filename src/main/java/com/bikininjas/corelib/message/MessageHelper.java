@@ -2,6 +2,7 @@ package com.bikininjas.corelib.message;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.Style;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
@@ -181,25 +182,30 @@ public final class MessageHelper {
         Objects.requireNonNull(text, "text must not be null");
         var output = Component.literal("");
         var current = new StringBuilder();
+        var style = Style.EMPTY;
         for (int i = 0; i < text.length(); i++) {
             char c = text.charAt(i);
             if (c == '&' && i + 1 < text.length()) {
-                // Flush current literal
+                // Flush current literal with accumulated style
                 if (!current.isEmpty()) {
-                    output.append(Component.literal(current.toString()));
+                    output.append(Component.literal(current.toString()).withStyle(style));
                     current.setLength(0);
                 }
                 char code = text.charAt(++i);
-                var format = ChatFormatting.getByCode(code);
-                if (format != null) {
-                    output.append(Component.literal("").withStyle(format));
+                if (code == 'r') {
+                    style = Style.EMPTY;
+                } else {
+                    var format = ChatFormatting.getByCode(code);
+                    if (format != null) {
+                        style = style.applyFormat(format);
+                    }
                 }
             } else {
                 current.append(c);
             }
         }
         if (!current.isEmpty()) {
-            output.append(Component.literal(current.toString()));
+            output.append(Component.literal(current.toString()).withStyle(style));
         }
         return output;
     }

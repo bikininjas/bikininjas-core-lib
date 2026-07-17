@@ -549,9 +549,11 @@ public final class CoreLibTestFunctions {
         helper.assertTrue(holder.isPresent(), "shapeless builder should produce a recipe");
         if (holder.isPresent()) {
             RecipeAPI.addRecipe(id, holder.get());
+            RecipeAPI.applyPending(server);
             helper.assertTrue(server.getRecipeManager().byKey(ResourceLocation.parse(id)).isPresent(),
                     "added recipe should be present in the server recipe manager");
             RecipeAPI.removeRecipe(id);
+            RecipeAPI.applyPending(server);
             helper.assertTrue(server.getRecipeManager().byKey(ResourceLocation.parse(id)).isEmpty(),
                     "removed recipe should no longer be present");
         }

@@ -92,10 +92,5 @@ public final class CoreLib {
         static void onServerAboutToStart(ServerAboutToStartEvent event) {
             initModules();
         }
-
-        @SubscribeEvent
-        static void onRegisterCommands(RegisterCommandsEvent event) {
-            ConfigCommand.register(event.getDispatcher());
-        }
     }
 }

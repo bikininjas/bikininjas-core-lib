@@ -5,7 +5,7 @@ plugins {
 }
 
 version = project.mod_version
-group = project.mod_group_id
+group = project.maven_group
 
 base {
     archivesName = "bikininjas-${project.mod_id}"
@@ -126,16 +126,17 @@ publishing {
     publications {
         register('mavenJava', MavenPublication) {
             from components.java
+            artifactId = 'core-lib'
         }
     }
     repositories {
         maven {
-            name = "Bikininjas"
-            url = "https://maven.bikininjas.dev/releases"
-        }
-        maven {
-            name = "local"
-            url = "file://${rootProject.projectDir}/repo"
+            name = "GitHubPackages"
+            url = "https://maven.pkg.github.com/bikininjas/bikininjas-core-lib"
+            credentials {
+                username = project.findProperty("gpr.user") ?: System.getenv("GITHUB_ACTOR")
+                password = project.findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
+            }
         }
     }
 }

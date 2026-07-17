@@ -80,7 +80,7 @@ public final class CoreLibNewFeaturesTest {
 
         // Set a cooldown that already expired (0 ticks)
         CooldownManager.setCooldown(level, player.getUUID(), "expired_action", 0);
-        helper.assertTrue(!CooldownManager.isOnCooldown(player.getUUID(), "expired_action"),
+        helper.assertTrue(!CooldownManager.isOnCooldown(level, player.getUUID(), "expired_action"),
                 "Expired cooldown should not report as on cooldown");
         helper.succeed();
     }

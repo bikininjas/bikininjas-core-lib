@@ -1,4 +1,7 @@
-name: Download core-lib
+# DEPRECATED — Migrated to GitHub Packages Maven (2026-07-18).
+# Child mods now resolve core-lib via maven { url = "https://maven.pkg.github.com/bikininjas/bikininjas-core-lib" }.
+# This workflow is kept for historical reference. Remove after all child mods confirm migration.
+name: Download core-lib [DEPRECATED]
 # Reusable workflow for child mods to fetch core-lib from GitHub Release.
 # Call BEFORE `./gradlew build` in your child mod's CI.
 #
